@@ -1,0 +1,214 @@
+---
+title: "Practcal Machine Learning"
+author: "Benjamin Mohn"
+date: "10/29/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Predict Quantity of barbell lifts
+
+In the following report I am going to predict the quantity in which one out six participants performed one set of 10 barbell lifts. Each of the participants was asked to perform the lift in 5 different ways and was wearing accelerometer on the belt, forearm and arm and as well the dumbbell got an accelerometer. The data I am going to use is from this source:  http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har
+The dataset is licensed under the Creative Commons license (CC BY-SA)
+The data is directly splitted into to test and training set and the variable I am going to predict os the **classe** variable. The classes are as followns: 
+
+ - A := exactly according to specification
+ - B := throwing the elbows to the front
+ - C := lifting the dumbbell halfway
+ - D := lowering the dumbbell halfway
+ - E := throwing hips to the front
+ 
+The original data and first publication is the following one, which I am citing for completness reasons: 
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+
+## Loading data
+
+```{r load, echo=FALSE}
+download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv', 'train_set.csv', quiet=TRUE)
+download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv', 'test_set.csv', quiet=TRUE)
+training <- read.csv('train_set.csv')
+testing <- read.csv('test_set.csv')
+```
+
+## Exploratory Data Analysis
+
+```{r dimensions}
+dim(training)
+dim(testing)
+```
+There are 160 Variables and 19622 observation in the training set and 20 observation in the test set. 
+
+```{r columns}
+names(training)
+```
+The first seven columns describe the observation, so there are things like, the name, the set and timestamps. I do not assume those values to have an influence on the *classe* variable.
+Therefore I will remove them in a later step.
+After the first 7 features there are several measurements for each of the 4 accelerometers. 
+
+```{r naColumns}
+sapply(training[sapply(training,  function(x) sum(is.na(x))) > 0 ], function(c) sum(is.na(c)))
+```
+Here one can see all columns with Na values and how many there are. What is interesting is, that it seems that there is either no Na's or 19216 so there seems to be some pattern. Unfortunatly in the documentation I could not find any hint what could be the reason for this. 
+Therefore I will exclude this paramters and see if I am able to get a reasonably good model without them. 
+
+```{r reduction}
+reduced_training <- training[sapply(training,  function(x) sum(is.na(x))) == 0 ]
+```
+
+Next thing I want to do is to exclude the first 7 columns. 
+
+```{r reduction2}
+further_reduced_training <- reduced_training[, - (1:7)]
+```
+My idea is to use Cross Validation on all numeric parameters. Therefore I am now filtering for those. 
+```{r reduction3}
+final_training <- further_reduced_training[sapply(further_reduced_training, is.numeric)]
+final_training$classe <- further_reduced_training$classe
+```
+
+Now I am going to do several boxplots to get some feeling for the data. I am going to plot the combined statistics for each accelerator aggainst the classes.
+
+```{r plot_arm}
+par(mfrow=c(2,2), oma=c(0,0,2,0))
+boxplot(pitch_arm~classe, data=final_training, col=2:6, main="pitch")
+boxplot(total_accel_arm~classe, data=final_training, col=2:6, main= "Total Accelreation")
+boxplot(roll_arm~classe, data=final_training, col=2:6, main="Roll")
+boxplot(yaw_arm~classe, data=final_training, col=2:6, main="YAW")
+mtext("Arm Accelerator", outer=TRUE, cex = 1.5)
+```
+
+```{r plot_forearm}
+par(mfrow=c(2,2), oma=c(0,0,2,0))
+boxplot(pitch_forearm~classe, data=final_training, col=2:6, main="pitch")
+boxplot(total_accel_forearm~classe, data=final_training, col=2:6, main= "Total Accelreation")
+boxplot(roll_forearm~classe, data=final_training, col=2:6, main="Roll")
+boxplot(yaw_forearm~classe, data=final_training, col=2:6, main="YAW")
+mtext("Forearm Accelerator", outer=TRUE, cex = 1.5)
+```
+```{r plot_belt}
+par(mfrow=c(2,2), oma=c(0,0,2,0))
+boxplot(pitch_belt~classe, data=final_training, col=2:6, main="pitch")
+boxplot(total_accel_belt~classe, data=final_training, col=2:6, main= "Total Accelreation")
+boxplot(roll_belt~classe, data=final_training, col=2:6, main="Roll")
+boxplot(yaw_belt~classe, data=final_training, col=2:6, main="YAW")
+mtext("Belt Accelerator", outer=TRUE, cex = 1.5)
+```
+```{r plot_dumbbell}
+par(mfrow=c(2,2), oma=c(0,0,2,0))
+boxplot(pitch_dumbbell~classe, data=final_training, col=2:6, main="pitch")
+boxplot(total_accel_dumbbell~classe, data=final_training, col=2:6, main= "Total Accelreation")
+boxplot(roll_dumbbell~classe, data=final_training, col=2:6, main="Roll")
+boxplot(yaw_dumbbell~classe, data=final_training, col=2:6, main="YAW")
+mtext("Dumbbell Accelerator", outer=TRUE, cex = 1.5)
+```
+
+## Model fitting
+In all these graphics there is not really a huge different beetween the variables visible. 
+Therefore I am going to try now a crossvalidation on the complete data set with different models of the caret package. 
+I will use k-Fold cross validation with k set to 3 becaue of timing issues. Therefore I will assign a new variable *fold* to the data which holds the information in which group a observation falls. 
+
+```{r fold_creation}
+require(caret)
+set.seed(29102018)
+final_training$fold <- createFolds(final_training$classe, k=3, list=FALSE)
+```
+
+Now I can fit models holding one of the groups out. 
+ 
+### Tree - Models
+```{r tree_models}
+set.seed(29102018)
+tree1 <- train(classe~., data= final_training[(final_training$fold != 1),-54], method="rpart")
+set.seed(29102018)
+tree2 <- train(classe~., data= final_training[(final_training$fold != 2),-54], method="rpart")
+set.seed(29102018)
+tree3 <- train(classe~., data= final_training[(final_training$fold != 3),-54], method="rpart")
+```
+
+### Generalized Boosting Models
+
+```{r gb_models}
+set.seed(29102018)
+gbm1 <- train(classe~., data= final_training[(final_training$fold != 1),-54], method="gbm", verbose=FALSE)
+set.seed(29102018)
+gbm2 <- train(classe~., data= final_training[(final_training$fold != 2),-54], method="gbm", verbose=FALSE)
+set.seed(29102018)
+gbm3 <- train(classe~., data= final_training[(final_training$fold != 3),-54], method="gbm", verbose=FALSE)
+```
+
+### Linear discriminant Analysis  
+```{r lda_models}
+set.seed(29102018)
+lda1 <- train(classe~., data= final_training[(final_training$fold != 1),-54], method="lda")
+set.seed(29102018)
+lda2 <- train(classe~., data= final_training[(final_training$fold != 2),-54], method="lda")
+set.seed(29102018)
+lda3 <- train(classe~., data= final_training[(final_training$fold != 3),-54], method="lda")
+```
+
+## Evaluation
+Now that I have fitted the different models I am going to evaluate them. 
+This I will do be using a Confusion Matrix for each of them and then taking the average of the accurcies. That model which reached the highest accuraccy I will fit once more on the entire data set and then use to do a prediction on the testing set. 
+```{r predictions}
+predictTree1 <- predict(tree1,  final_training[(final_training$fold == 1),-54])
+predictTree2 <- predict(tree2,  final_training[(final_training$fold == 2),-54])
+predictTree3 <- predict(tree3,  final_training[(final_training$fold == 3),-54])
+
+predictGBM1 <- predict(gbm1,  final_training[(final_training$fold == 1),-54])
+predictGBM2 <- predict(gbm2,  final_training[(final_training$fold == 2),-54])
+predictGBM3 <- predict(gbm3,  final_training[(final_training$fold == 3),-54])
+
+predictLDA1 <- predict(lda1,  final_training[(final_training$fold == 1),-54])
+predictLDA2 <- predict(lda2,  final_training[(final_training$fold == 2),-54])
+predictLDA3 <- predict(lda3,  final_training[(final_training$fold == 3),-54])
+```
+
+```{r evaluation}
+confusionTree1 <- confusionMatrix(data = predictTree1, reference = final_training[(final_training$fold == 1),]$classe)
+confusionTree2 <- confusionMatrix(data = predictTree2, reference = final_training[(final_training$fold == 2),]$classe)
+confusionTree3 <- confusionMatrix(data = predictTree3, reference = final_training[(final_training$fold == 3),]$classe)
+
+confusionGBM1 <- confusionMatrix(data = predictGBM1, reference = final_training[(final_training$fold == 1),]$classe)
+confusionGBM2 <- confusionMatrix(data = predictGBM2, reference = final_training[(final_training$fold == 2),]$classe)
+confusionGBM3 <- confusionMatrix(data = predictGBM3, reference = final_training[(final_training$fold == 3),]$classe)
+
+confusionLDA1 <- confusionMatrix(data = predictLDA1, reference = final_training[(final_training$fold == 1),]$classe)
+confusionLDA2 <- confusionMatrix(data = predictLDA2, reference = final_training[(final_training$fold == 2),]$classe)
+confusionLDA3 <- confusionMatrix(data = predictLDA3, reference = final_training[(final_training$fold == 3),]$classe)
+```
+
+## Results
+```{r tree_result}
+mean(c(confusionTree1$overall[1],confusionTree2$overall[1],confusionTree3$overall[1]))
+```
+
+```{r gbm_result}
+mean(c(confusionGBM1$overall[1],confusionGBM2$overall[1],confusionGBM3$overall[1]))
+```
+
+```{r lda_result}
+mean(c(confusionLDA1$overall[1],confusionLDA2$overall[1],confusionLDA3$overall[1]))
+```
+
+The results show, that the normal tree algorithm performed worse amoung the three testes models. Everage accuracy is less then 50%. The genarilzed boosting models where by far the best with an average accuraccy of 96%. 
+Therefore I will learn the final model as an *GBM*. So I can expect an accurracy of 96% and an out of sample error of 4%.
+```{r final_model}
+best_model <-  train(classe~., data= final_training[,-54], method="gbm", verbose=FALSE)
+```
+
+## Predicting
+Now I am going to predict the outomes for the testing set. 
+First thing I need to do is to bring the data in the same format. In this case it means, that I have to drop the columns I also dropped in the training set.
+
+```{r dropping}
+final_testing <- testing[,names(final_training[,-c(53,54)])]
+```
+
+The predictions according to the model I have trained are: 
+```{r predict}
+predict(best_model, final_testing)
+```
+
