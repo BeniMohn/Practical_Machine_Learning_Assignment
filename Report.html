@@ -183,60 +183,29 @@ final_training$classe &lt;- further_reduced_training$classe</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
 <pre class="r"><code>set.seed(29102018)
 final_training$fold &lt;- createFolds(final_training$classe, k=3, list=FALSE)</code></pre>
-<p>Now I can fit models holding one of the groups out.</p>
+<p>Now I can fit models holding one of the groups out. Since the code is allways the same, I will just show it for one model. The seet will be always the same.</p>
 <div id="tree---models" class="section level3">
 <h3>Tree - Models</h3>
 <pre class="r"><code>set.seed(29102018)
-tree1 &lt;- train(classe~., data= final_training[(final_training$fold != 1),-54], method=&quot;rpart&quot;)
-set.seed(29102018)
-tree2 &lt;- train(classe~., data= final_training[(final_training$fold != 2),-54], method=&quot;rpart&quot;)
-set.seed(29102018)
-tree3 &lt;- train(classe~., data= final_training[(final_training$fold != 3),-54], method=&quot;rpart&quot;)</code></pre>
+tree1 &lt;- train(classe~., data= final_training[(final_training$fold != 1),-54], method=&quot;rpart&quot;)</code></pre>
 </div>
 <div id="generalized-boosting-models" class="section level3">
 <h3>Generalized Boosting Models</h3>
 <pre class="r"><code>set.seed(29102018)
-gbm1 &lt;- train(classe~., data= final_training[(final_training$fold != 1),-54], method=&quot;gbm&quot;, verbose=FALSE)
-set.seed(29102018)
-gbm2 &lt;- train(classe~., data= final_training[(final_training$fold != 2),-54], method=&quot;gbm&quot;, verbose=FALSE)
-set.seed(29102018)
-gbm3 &lt;- train(classe~., data= final_training[(final_training$fold != 3),-54], method=&quot;gbm&quot;, verbose=FALSE)</code></pre>
+gbm1 &lt;- train(classe~., data= final_training[(final_training$fold != 1),-54], method=&quot;gbm&quot;, verbose=FALSE)</code></pre>
 </div>
 <div id="linear-discriminant-analysis" class="section level3">
 <h3>Linear discriminant Analysis</h3>
 <pre class="r"><code>set.seed(29102018)
-lda1 &lt;- train(classe~., data= final_training[(final_training$fold != 1),-54], method=&quot;lda&quot;)
-set.seed(29102018)
-lda2 &lt;- train(classe~., data= final_training[(final_training$fold != 2),-54], method=&quot;lda&quot;)
-set.seed(29102018)
-lda3 &lt;- train(classe~., data= final_training[(final_training$fold != 3),-54], method=&quot;lda&quot;)</code></pre>
+lda1 &lt;- train(classe~., data= final_training[(final_training$fold != 1),-54], method=&quot;lda&quot;)</code></pre>
 </div>
 </div>
 <div id="evaluation" class="section level2">
 <h2>Evaluation</h2>
-<p>Now that I have fitted the different models I am going to evaluate them. This I will do be using a Confusion Matrix for each of them and then taking the average of the accurcies. That model which reached the highest accuraccy I will fit once more on the entire data set and then use to do a prediction on the testing set.</p>
+<p>Now that I have fitted the different models I am going to evaluate them. This I will do be using a Confusion Matrix for each of them and then taking the average of the accurcies. That model which reached the highest accuraccy I will fit once more on the entire data set and then use to do a prediction on the testing set. I will show the code for one example the rest will be similar.</p>
 <pre class="r"><code>predictTree1 &lt;- predict(tree1,  final_training[(final_training$fold == 1),-54])
-predictTree2 &lt;- predict(tree2,  final_training[(final_training$fold == 2),-54])
-predictTree3 &lt;- predict(tree3,  final_training[(final_training$fold == 3),-54])
 
-predictGBM1 &lt;- predict(gbm1,  final_training[(final_training$fold == 1),-54])
-predictGBM2 &lt;- predict(gbm2,  final_training[(final_training$fold == 2),-54])
-predictGBM3 &lt;- predict(gbm3,  final_training[(final_training$fold == 3),-54])
-
-predictLDA1 &lt;- predict(lda1,  final_training[(final_training$fold == 1),-54])
-predictLDA2 &lt;- predict(lda2,  final_training[(final_training$fold == 2),-54])
-predictLDA3 &lt;- predict(lda3,  final_training[(final_training$fold == 3),-54])</code></pre>
-<pre class="r"><code>confusionTree1 &lt;- confusionMatrix(data = predictTree1, reference = final_training[(final_training$fold == 1),]$classe)
-confusionTree2 &lt;- confusionMatrix(data = predictTree2, reference = final_training[(final_training$fold == 2),]$classe)
-confusionTree3 &lt;- confusionMatrix(data = predictTree3, reference = final_training[(final_training$fold == 3),]$classe)
-
-confusionGBM1 &lt;- confusionMatrix(data = predictGBM1, reference = final_training[(final_training$fold == 1),]$classe)
-confusionGBM2 &lt;- confusionMatrix(data = predictGBM2, reference = final_training[(final_training$fold == 2),]$classe)
-confusionGBM3 &lt;- confusionMatrix(data = predictGBM3, reference = final_training[(final_training$fold == 3),]$classe)
-
-confusionLDA1 &lt;- confusionMatrix(data = predictLDA1, reference = final_training[(final_training$fold == 1),]$classe)
-confusionLDA2 &lt;- confusionMatrix(data = predictLDA2, reference = final_training[(final_training$fold == 2),]$classe)
-confusionLDA3 &lt;- confusionMatrix(data = predictLDA3, reference = final_training[(final_training$fold == 3),]$classe)</code></pre>
+confusionTree1 &lt;- confusionMatrix(data = predictTree1, reference = final_training[(final_training$fold == 1),]$classe)</code></pre>
 </div>
 <div id="results" class="section level2">
 <h2>Results</h2>
