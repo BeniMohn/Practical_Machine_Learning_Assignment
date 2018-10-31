@@ -26,7 +26,7 @@ Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activ
 
 ## Loading data
 
-```{r load, echo=FALSE}
+```{r load}
 download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv', 'train_set.csv', quiet=TRUE)
 download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv', 'test_set.csv', quiet=TRUE)
 training <- read.csv('train_set.csv')
@@ -42,16 +42,16 @@ dim(testing)
 There are 160 Variables and 19622 observation in the training set and 20 observation in the test set. 
 
 ```{r columns}
-names(training)
+names(training)[1:10]
 ```
 The first seven columns describe the observation, so there are things like, the name, the set and timestamps. I do not assume those values to have an influence on the *classe* variable.
 Therefore I will remove them in a later step.
 After the first 7 features there are several measurements for each of the 4 accelerometers. 
 
 ```{r naColumns}
-sapply(training[sapply(training,  function(x) sum(is.na(x))) > 0 ], function(c) sum(is.na(c)))
+unique(sapply(training[sapply(training,  function(x) sum(is.na(x))) > 0 ], function(c) sum(is.na(c))))
 ```
-Here one can see all columns with Na values and how many there are. What is interesting is, that it seems that there is either no Na's or 19216 so there seems to be some pattern. Unfortunatly in the documentation I could not find any hint what could be the reason for this. 
+What is interesting is, that it seems that there is either no Na's or 19216 so there seems to be some pattern. Unfortunatly in the documentation I could not find any hint what could be the reason for this. 
 Therefore I will exclude this paramters and see if I am able to get a reasonably good model without them. 
 
 ```{r reduction}
