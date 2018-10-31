@@ -71,37 +71,37 @@ final_training$classe <- further_reduced_training$classe
 
 Now I am going to do several boxplots to get some feeling for the data. I am going to plot the combined statistics for each accelerator aggainst the classes.
 
-```{r plot_arm}
-par(mfrow=c(2,2), oma=c(0,0,2,0))
-boxplot(pitch_arm~classe, data=final_training, col=2:6, main="pitch")
-boxplot(total_accel_arm~classe, data=final_training, col=2:6, main= "Total Accelreation")
-boxplot(roll_arm~classe, data=final_training, col=2:6, main="Roll")
-boxplot(yaw_arm~classe, data=final_training, col=2:6, main="YAW")
+```{r plot_arm, echo=FALSE}
+par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
+boxplot(pitch_arm~classe, data=final_training, main="pitch")
+boxplot(total_accel_arm~classe, data=final_training, main= "Total Accelreation")
+boxplot(roll_arm~classe, data=final_training, main="Roll")
+boxplot(yaw_arm~classe, data=final_training, main="YAW")
 mtext("Arm Accelerator", outer=TRUE, cex = 1.5)
 ```
 
-```{r plot_forearm}
-par(mfrow=c(2,2), oma=c(0,0,2,0))
-boxplot(pitch_forearm~classe, data=final_training, col=2:6, main="pitch")
-boxplot(total_accel_forearm~classe, data=final_training, col=2:6, main= "Total Accelreation")
-boxplot(roll_forearm~classe, data=final_training, col=2:6, main="Roll")
-boxplot(yaw_forearm~classe, data=final_training, col=2:6, main="YAW")
+```{r plot_forearm, echo=FALSE}
+par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
+boxplot(pitch_forearm~classe, data=final_training, main="pitch")
+boxplot(total_accel_forearm~classe, data=final_training, main= "Total Accelreation")
+boxplot(roll_forearm~classe, data=final_training, main="Roll")
+boxplot(yaw_forearm~classe, data=final_training, main="YAW")
 mtext("Forearm Accelerator", outer=TRUE, cex = 1.5)
 ```
-```{r plot_belt}
-par(mfrow=c(2,2), oma=c(0,0,2,0))
-boxplot(pitch_belt~classe, data=final_training, col=2:6, main="pitch")
-boxplot(total_accel_belt~classe, data=final_training, col=2:6, main= "Total Accelreation")
-boxplot(roll_belt~classe, data=final_training, col=2:6, main="Roll")
-boxplot(yaw_belt~classe, data=final_training, col=2:6, main="YAW")
+```{r plot_belt, echo=FALSE}
+par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
+boxplot(pitch_belt~classe, data=final_training, main="pitch")
+boxplot(total_accel_belt~classe, data=final_training, main= "Total Accelreation")
+boxplot(roll_belt~classe, data=final_training, main="Roll")
+boxplot(yaw_belt~classe, data=final_training, main="YAW")
 mtext("Belt Accelerator", outer=TRUE, cex = 1.5)
 ```
-```{r plot_dumbbell}
-par(mfrow=c(2,2), oma=c(0,0,2,0))
-boxplot(pitch_dumbbell~classe, data=final_training, col=2:6, main="pitch")
-boxplot(total_accel_dumbbell~classe, data=final_training, col=2:6, main= "Total Accelreation")
-boxplot(roll_dumbbell~classe, data=final_training, col=2:6, main="Roll")
-boxplot(yaw_dumbbell~classe, data=final_training, col=2:6, main="YAW")
+```{r plot_dumbbell, echo=FALSE}
+par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
+boxplot(pitch_dumbbell~classe, data=final_training, main="pitch")
+boxplot(total_accel_dumbbell~classe, data=final_training, main= "Total Accelreation")
+boxplot(roll_dumbbell~classe, data=final_training, main="Roll")
+boxplot(yaw_dumbbell~classe, data=final_training, main="YAW")
 mtext("Dumbbell Accelerator", outer=TRUE, cex = 1.5)
 ```
 
