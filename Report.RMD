@@ -2,9 +2,7 @@
 title: "Practcal Machine Learning"
 author: "Benjamin Mohn"
 date: "10/29/2018"
-output: 
-  html_document:
-    self_contained: false
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -121,12 +119,9 @@ final_training$fold <- createFolds(final_training$classe, k=3, list=FALSE)
 Now I can fit models holding one of the groups out. Since the code is allways the same, I will just show it for one model. The seet will be always the same. 
  
 ### Tree - Models
-```{r treeSample}
+```{r tree_models}
 set.seed(29102018)
 tree1 <- train(classe~., data= final_training[(final_training$fold != 1),-54], method="rpart")
-```
-
-```{r tree_models, echo=FALSE}
 set.seed(29102018)
 tree2 <- train(classe~., data= final_training[(final_training$fold != 2),-54], method="rpart")
 set.seed(29102018)
@@ -134,12 +129,9 @@ tree3 <- train(classe~., data= final_training[(final_training$fold != 3),-54], m
 ```
 
 ### Generalized Boosting Models
-```{r gbmsample}
+```{r gb_models}
 set.seed(29102018)
 gbm1 <- train(classe~., data= final_training[(final_training$fold != 1),-54], method="gbm", verbose=FALSE)
-```
-
-```{r gb_models, echo=FALSE}
 set.seed(29102018)
 gbm2 <- train(classe~., data= final_training[(final_training$fold != 2),-54], method="gbm", verbose=FALSE)
 set.seed(29102018)
@@ -147,12 +139,9 @@ gbm3 <- train(classe~., data= final_training[(final_training$fold != 3),-54], me
 ```
 
 ### Linear discriminant Analysis
-```{r ldaSample}
+```{r lda_models}
 set.seed(29102018)
 lda1 <- train(classe~., data= final_training[(final_training$fold != 1),-54], method="lda")
-```
-
-```{r lda_models, echo=FALSE}
 set.seed(29102018)
 lda2 <- train(classe~., data= final_training[(final_training$fold != 2),-54], method="lda")
 set.seed(29102018)
@@ -162,13 +151,9 @@ lda3 <- train(classe~., data= final_training[(final_training$fold != 3),-54], me
 ## Evaluation
 Now that I have fitted the different models I am going to evaluate them. 
 This I will do be using a Confusion Matrix for each of them and then taking the average of the accurcies. That model which reached the highest accuraccy I will fit once more on the entire data set and then use to do a prediction on the testing set. I will show the code for one example the rest will be similar.
-```{r exampleCode}
+
+```{r predictions}
 predictTree1 <- predict(tree1,  final_training[(final_training$fold == 1),-54])
-
-confusionTree1 <- confusionMatrix(data = predictTree1, reference = final_training[(final_training$fold == 1),]$classe)
-```
-
-```{r predictions, echo=FALSE}
 predictTree2 <- predict(tree2,  final_training[(final_training$fold == 2),-54])
 predictTree3 <- predict(tree3,  final_training[(final_training$fold == 3),-54])
 
@@ -181,7 +166,8 @@ predictLDA2 <- predict(lda2,  final_training[(final_training$fold == 2),-54])
 predictLDA3 <- predict(lda3,  final_training[(final_training$fold == 3),-54])
 ```
 
-```{r evaluation, echo=FALSE}
+```{r evaluation}
+confusionTree1 <- confusionMatrix(data = predictTree1, reference = final_training[(final_training$fold == 1),]$classe)
 confusionTree2 <- confusionMatrix(data = predictTree2, reference = final_training[(final_training$fold == 2),]$classe)
 confusionTree3 <- confusionMatrix(data = predictTree3, reference = final_training[(final_training$fold == 3),]$classe)
 
