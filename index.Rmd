@@ -63,13 +63,15 @@ Next thing I want to do is to exclude the first 7 columns.
 ```{r reduction2}
 further_reduced_training <- reduced_training[, - (1:7)]
 ```
-My idea is to use Cross Validation on all numeric parameters. Therefore I am now filtering for those. 
+My idea is to use Cross Validation on all numeric parameters. Therefore I am now filtering for those.
+
 ```{r reduction3}
 final_training <- further_reduced_training[sapply(further_reduced_training, is.numeric)]
 final_training$classe <- further_reduced_training$classe
 ```
 
 Now I am going to do several boxplots to get some feeling for the data. I am going to plot the combined statistics for each accelerator aggainst the classes.
+
 ```{r plot_arm, echo=FALSE}
 par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
 boxplot(pitch_arm~classe, data=final_training, main="pitch")
@@ -87,6 +89,7 @@ boxplot(roll_forearm~classe, data=final_training, main="Roll")
 boxplot(yaw_forearm~classe, data=final_training, main="YAW")
 mtext("Forearm Accelerator", outer=TRUE, cex = 1.5)
 ```
+
 ```{r plot_belt, echo=FALSE}
 par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
 boxplot(pitch_belt~classe, data=final_training, main="pitch")
@@ -95,6 +98,7 @@ boxplot(roll_belt~classe, data=final_training, main="Roll")
 boxplot(yaw_belt~classe, data=final_training, main="YAW")
 mtext("Belt Accelerator", outer=TRUE, cex = 1.5)
 ```
+
 ```{r plot_dumbbell, echo=FALSE}
 par(mfrow=c(2,2), oma=c(1,1,2,0), mar=c(1,1,2.5,1)+0.1)
 boxplot(pitch_dumbbell~classe, data=final_training, main="pitch")
@@ -103,7 +107,6 @@ boxplot(roll_dumbbell~classe, data=final_training, main="Roll")
 boxplot(yaw_dumbbell~classe, data=final_training, main="YAW")
 mtext("Dumbbell Accelerator", outer=TRUE, cex = 1.5)
 ```
-
 
 ## Model fitting
 In all these graphics there is not really a huge different beetween the variables visible. 
